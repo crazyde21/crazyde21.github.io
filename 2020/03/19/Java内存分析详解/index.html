@@ -6,19 +6,23 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="https://crazyde21.github.io">
-  <title>Hello World | CrazyAwei的个人博客</title>
+  <title>Java的内存分析详解 | CrazyAwei的个人博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub. Quick">
+  <meta name="description" content="欢迎来到我的个人博客，这是我的第一篇文章，我们来讲一下Java 8以前运行过程中(8以后方法区实现方式不同)，面向对象的内存的使用情况分析。 JVM内存的三个区域Java虚拟机的内存可以分为三个区域：栈stack、堆heap、方法区method area。 栈stack栈的特点 栈描述的是方法执行的内存模型，每个方法被调用都会创建一个栈帧（存储局部变量、操作数、方法出口）等。 JVM为每个线程创建">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Hello World">
-<meta property="og:url" content="https://crazyde21.github.io/2020/03/19/hello-world/index.html">
+<meta property="og:title" content="Java的内存分析详解">
+<meta property="og:url" content="https://crazyde21.github.io/2020/03/19/Java%E5%86%85%E5%AD%98%E5%88%86%E6%9E%90%E8%AF%A6%E8%A7%A3/index.html">
 <meta property="og:site_name" content="CrazyAwei的个人博客">
-<meta property="og:description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub. Quick">
-<meta property="article:published_time" content="2020-03-19T01:40:11.654Z">
-<meta property="article:modified_time" content="2020-03-19T01:40:11.655Z">
+<meta property="og:description" content="欢迎来到我的个人博客，这是我的第一篇文章，我们来讲一下Java 8以前运行过程中(8以后方法区实现方式不同)，面向对象的内存的使用情况分析。 JVM内存的三个区域Java虚拟机的内存可以分为三个区域：栈stack、堆heap、方法区method area。 栈stack栈的特点 栈描述的是方法执行的内存模型，每个方法被调用都会创建一个栈帧（存储局部变量、操作数、方法出口）等。 JVM为每个线程创建">
+<meta property="og:image" content="https://crazyde21.github.io/assets/stack/in.png">
+<meta property="og:image" content="https://crazyde21.github.io/assets/stack/out.png">
+<meta property="og:image" content="https://crazyde21.github.io/assets/memery/main.png">
+<meta property="article:published_time" content="2020-03-19T03:07:13.275Z">
+<meta property="article:modified_time" content="2020-03-19T07:29:10.104Z">
 <meta property="article:author" content="CrazyAwei">
 <meta property="article:tag" content="Java">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://crazyde21.github.io/assets/stack/in.png">
   
     <link rel="alternative" href="/atom.xml" title="CrazyAwei的个人博客" type="application/atom+xml">
   
@@ -154,39 +158,65 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            <article id="post-hello-world" class="article article-type-post " itemscope itemprop="blogPost">
+            <article id="post-Java内存分析详解" class="article article-type-post " itemscope itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 class="article-title" itemprop="name">
-      Hello World
+      Java的内存分析详解
     </h1>
   
 
         
-        <a href="/2020/03/19/hello-world/" class="archive-article-date">
-  	<time datetime="2020-03-19T01:40:11.654Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-03-19</time>
+        <a href="/2020/03/19/Java%E5%86%85%E5%AD%98%E5%88%86%E6%9E%90%E8%AF%A6%E8%A7%A3/" class="archive-article-date">
+  	<time datetime="2020-03-19T03:07:13.275Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-03-19</time>
 </a>
         
       </header>
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
+        <p>欢迎来到<a href="https://crazyde21.github.io/">我的个人博客</a>，这是我的第一篇文章，我们来讲一下Java 8以前运行过程中(8以后方法区实现方式不同)，面向对象的内存的使用情况分析。</p>
+<h2 id="JVM内存的三个区域"><a href="#JVM内存的三个区域" class="headerlink" title="JVM内存的三个区域"></a>JVM内存的三个区域</h2><p>Java虚拟机的内存可以分为三个区域：栈stack、堆heap、方法区method area。</p>
+<h3 id="栈stack"><a href="#栈stack" class="headerlink" title="栈stack"></a>栈stack</h3><h4 id="栈的特点"><a href="#栈的特点" class="headerlink" title="栈的特点"></a>栈的特点</h4><ol>
+<li>栈描述的是方法执行的内存模型，每个方法被调用都会创建一个栈帧（存储局部变量、操作数、方法出口）等。</li>
+<li>JVM为每个线程创建一个栈，用于存放该线程执行方法的信息（实际参数、局部变量等）。</li>
+<li>栈属于线程私有，不能实现线程间的共享！</li>
+<li>栈的存储特性是“先进后出，后进先出”。</li>
+<li>栈是由系统自动分配，速度快！栈是一个连续的内存空间！<br><img src="/assets/stack/in.png" alt="进栈"><br><img src="/assets/stack/out.png" alt="出栈"></li>
+</ol>
+<h3 id="堆heap"><a href="#堆heap" class="headerlink" title="堆heap"></a>堆heap</h3><h4 id="堆的特点"><a href="#堆的特点" class="headerlink" title="堆的特点"></a>堆的特点</h4><ol>
+<li>堆用于存储创建好的对象和数组（数组也是对象）</li>
+<li>JVM只有一个堆，被所有线程共享</li>
+<li>堆是一个不连续的内存空间，分配灵活，但寻址难，所以速度慢！</li>
+</ol>
+<h3 id="方法区（又叫静态区）"><a href="#方法区（又叫静态区）" class="headerlink" title="方法区（又叫静态区）"></a>方法区（又叫静态区）</h3><h4 id="方法区的特点"><a href="#方法区的特点" class="headerlink" title="方法区的特点"></a>方法区的特点</h4><ol>
+<li>JVM只有一个方法区，被所有线程共享！</li>
+<li>方法区实际也是堆（java8之前），只是用于存储类、常量相关的信息！</li>
+<li>用来存放程序中永远是不变或唯一的内容（类信息【Class对象】、静态变量、字符串常量等）。</li>
+</ol>
+<h2 id="程序启动"><a href="#程序启动" class="headerlink" title="程序启动"></a>程序启动</h2><p>我们Java程序运行，首先得用javac命令编译源文件，之后用java命令运行。当java程序启动时，JVM会划分内存。</p>
+<h3 id="Person类示例"><a href="#Person类示例" class="headerlink" title="Person类示例"></a>Person类示例</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">public class Person &#123;</span><br><span class="line">    private String name;</span><br><span class="line">    private int age;</span><br><span class="line">    private String relationship;</span><br><span class="line">    private Person object;</span><br><span class="line"></span><br><span class="line">	public Person()&#123;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">    public String getName() &#123;</span><br><span class="line">        return name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setName(String name) &#123;</span><br><span class="line">        this.name &#x3D; name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public int getAge() &#123;</span><br><span class="line">        return age;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setAge(int age) &#123;</span><br><span class="line">        this.age &#x3D; age;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public String getRelationship() &#123;</span><br><span class="line">        return relationship;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setRelationship(String relationship) &#123;</span><br><span class="line">        this.relationship &#x3D; relationship;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public Person getObject() &#123;</span><br><span class="line">        return object;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setObject(Person object) &#123;</span><br><span class="line">        this.object &#x3D; object;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+<h3 id="主入口示例"><a href="#主入口示例" class="headerlink" title="主入口示例"></a>主入口示例</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">public class Test &#123;</span><br><span class="line">    &#x2F;&#x2F;主入口，JVM会在方法区寻找类中静态main方法作为程序的入口</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        System.out.println(&quot;方法入口&quot;);</span><br><span class="line"></span><br><span class="line">        Person me &#x3D; new Person();</span><br><span class="line">        me.setName(&quot;张三&quot;);</span><br><span class="line">        me.setRelationship(&quot;哥哥&quot;);</span><br><span class="line"></span><br><span class="line">        Person brother &#x3D; new Person();</span><br><span class="line">        brother.setName(&quot;李四&quot;);</span><br><span class="line">        brother.setRelationship(&quot;弟弟&quot;);</span><br><span class="line"></span><br><span class="line">        me.setObject(brother);</span><br><span class="line">        brother.setObject(me);</span><br><span class="line"></span><br><span class="line">        System.out.println(me.getName()+&quot;是&quot;+me.getObject().getName()+&quot;的&quot;+me.getRelationship());</span><br><span class="line">        System.out.println(brother.getName()+&quot;是&quot;+brother.getObject().getName()+&quot;的&quot;+brother.getRelationship());</span><br><span class="line"></span><br><span class="line">        System.out.println(&quot;方法出口&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="运行结果"><a href="#运行结果" class="headerlink" title="运行结果"></a>运行结果</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">方法入口</span><br><span class="line">张三是李四的哥哥</span><br><span class="line">李四是张三的弟弟</span><br><span class="line">方法出口</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+<h2 id="内存详解"><a href="#内存详解" class="headerlink" title="内存详解"></a>内存详解</h2><p><img src="/assets/memery/main.png" alt="内存详解"></p>
+<p>图中①位置：当程序启动，内存划分时，方法区会初始化程序相关信息，如类的结构信息、字符串常量池等。</p>
+<h3 id="按照数字顺序详解"><a href="#按照数字顺序详解" class="headerlink" title="按照数字顺序详解"></a>按照数字顺序详解</h3><ol>
+<li>JVM会从常量池中寻找程序的主入口，也就是公共静态main方法。然后该方法进栈底，逐行运行方法体的内容。</li>
+<li>当方法体内出现 new关键字时候，首先会从方法区找到new该类的结构信息，然后让该类的构造器方法进栈。</li>
+<li>构造器方法进栈，执行构造器方法体内的代码之后出栈。3-5步其实可以看作1步。</li>
+<li>在堆中开辟一块内存区域，存储该对象。</li>
+<li>把该对象在内存的地址返回，继续执行main方法。</li>
+<li>通过地址寻找指向的对象，调用该对象的方法，并设置该对象的属性值为“张三”。</li>
+<li>这里的“张三”是程序开始时，方法区初始化时候会自动加入到字符串常量池中，这里的赋值，其实是把该变量指向常量池中该字符串的地址。</li>
+<li>重复前面几步，在堆中开辟内存创建对象，返回地址。</li>
+<li>通过地址寻找指向的对象，调用该对象的方法，并设置该对象的属性值为brother对象。</li>
+<li>这里的brother对象是第8步创建的对象，这里其实是将brother对象的地址赋值给该属性（第9步）。</li>
+</ol>
 
       
 
@@ -266,7 +296,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=https://crazyde21.github.io/2020/03/19/hello-world/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=https://crazyde21.github.io/2020/03/19/Java%E5%86%85%E5%AD%98%E5%88%86%E6%9E%90%E8%AF%A6%E8%A7%A3/" alt="微信分享二维码">
     </div>
 </div>
 
