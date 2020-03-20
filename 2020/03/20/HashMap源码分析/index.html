@@ -6,17 +6,28 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="https://crazyde21.github.io">
-  <title>Archives | CrazyAwei的个人博客</title>
+  <title>单线程场景下的HashMap（JDK1.8） | CrazyAwei的个人博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="记录了我的Java程序员的成长之路。">
-<meta property="og:type" content="website">
-<meta property="og:title" content="CrazyAwei的个人博客">
-<meta property="og:url" content="https://crazyde21.github.io/archives/index.html">
+  <meta name="description" content="HashMap类主要是用来处理具有键值对特征的数据，随着JDK版本的更新，JDK1.8对HashMap底层也进行了优化，我们来结合源码，一起深入浅出吧！">
+<meta property="og:type" content="article">
+<meta property="og:title" content="单线程场景下的HashMap（JDK1.8）">
+<meta property="og:url" content="https://crazyde21.github.io/2020/03/20/HashMap%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/index.html">
 <meta property="og:site_name" content="CrazyAwei的个人博客">
-<meta property="og:description" content="记录了我的Java程序员的成长之路。">
+<meta property="og:description" content="HashMap类主要是用来处理具有键值对特征的数据，随着JDK版本的更新，JDK1.8对HashMap底层也进行了优化，我们来结合源码，一起深入浅出吧！">
+<meta property="og:image" content="https://crazyde21.github.io/assets/hashmap/extendsimplements.png">
+<meta property="og:image" content="https://crazyde21.github.io/assets/hashmap/hashmap.png">
+<meta property="og:image" content="https://crazyde21.github.io/assets/hashmap/field2.png">
+<meta property="og:image" content="https://crazyde21.github.io/assets/hashmap/field1.png">
+<meta property="og:image" content="https://crazyde21.github.io/assets/hashmap/node.png">
+<meta property="og:image" content="https://crazyde21.github.io/assets/hashmap/hash.png">
+<meta property="og:image" content="https://crazyde21.github.io/assets/hashmap/hash-e.png">
+<meta property="og:image" content="https://crazyde21.github.io/assets/hashmap/hash-bili.png">
+<meta property="article:published_time" content="2020-03-20T05:05:06.776Z">
+<meta property="article:modified_time" content="2020-03-20T05:09:40.622Z">
 <meta property="article:author" content="CrazyAwei">
 <meta property="article:tag" content="Java">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://crazyde21.github.io/assets/hashmap/extendsimplements.png">
   
     <link rel="alternative" href="/atom.xml" title="CrazyAwei的个人博客" type="application/atom+xml">
   
@@ -152,76 +163,205 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            
+            <article id="post-HashMap源码分析" class="article article-type-post " itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
   
+    <h1 class="article-title" itemprop="name">
+      单线程场景下的HashMap（JDK1.8）
+    </h1>
   
-    
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2020" class="archive-year">2020</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2020/03/20/HashMap%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="archive-article-date">
+
+        
+        <a href="/2020/03/20/HashMap%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="archive-article-date">
   	<time datetime="2020-03-20T05:05:06.776Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-03-20</time>
 </a>
-        </div>
-    	 
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2020/03/20/HashMap%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">单线程场景下的HashMap（JDK1.8）</a>
-    </h1>
-  
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>HashMap类主要是用来处理具有键值对特征的数据，随着JDK版本的更新，JDK1.8对HashMap底层也进行了优化，我们来结合源码，一起深入浅出吧！</p>
+<a id="more"></a>
 
-        <div class="article-info info-on-right">
-          
-          
+<h1 id="HashMap"><a href="#HashMap" class="headerlink" title="HashMap"></a>HashMap</h1><p>HashMap是基于哈希表对Map接口的实现。</p>
+<p><img src="/assets/hashmap/extendsimplements.png" alt="实现"></p>
+<h2 id="HashMap的特点"><a href="#HashMap的特点" class="headerlink" title="HashMap的特点"></a>HashMap的特点</h2><ol>
+<li>HashMap具有较快的访问速度，但是遍历顺序确实不确定的。</li>
+<li>HashMap提供所有可选的映射操作，并允许使用null键和null值</li>
+<li>HashMap并非线程安全，当存在多个线程同时写入HashMap时，可能会导致数据的不一致。</li>
+</ol>
+<h2 id="HashMap的结构"><a href="#HashMap的结构" class="headerlink" title="HashMap的结构"></a>HashMap的结构</h2><h3 id="HashMap的内存结构"><a href="#HashMap的内存结构" class="headerlink" title="HashMap的内存结构"></a>HashMap的内存结构</h3><p>HashMap采用了数组+链表+红黑树（JDK1.8）存储结构<br><img src="/assets/hashmap/hashmap.png" alt="结构"></p>
+<ol>
+<li>HashMap数组部分称为哈希桶，当链表长度大于等于 8 时，链表数据将以红黑树的形式进程存储，当长度降到 6 时，转成链表。</li>
+<li>链表的时间复杂度为O(n)，红黑树的时间复杂度为O(log n)</li>
+</ol>
+<h2 id="HashMap的源码分析"><a href="#HashMap的源码分析" class="headerlink" title="HashMap的源码分析"></a>HashMap的源码分析</h2><h3 id="HashMap的成员属性"><a href="#HashMap的成员属性" class="headerlink" title="HashMap的成员属性"></a>HashMap的成员属性</h3><p><img src="/assets/hashmap/field2.png" alt="源码1"></p>
+<p><img src="/assets/hashmap/field1.png" alt="源码2"></p>
+<ol>
+<li>loadFactor 称为负载因子，默认值为 0.75</li>
+<li>threshold 表示所能容纳的键值对的临界值，计算公式为：数组长度 * 负载因子</li>
+<li>size 是HashMap中实际存在的键值对数量</li>
+<li>modCount 字段用来记录HashMap内部结构发生变化的次数</li>
+<li>HashMap 的默认容量INITIAL_CAPACITY 为 1&lt;&lt;4 也就是 16</li>
+</ol>
+<h3 id="HashMap的节点Node"><a href="#HashMap的节点Node" class="headerlink" title="HashMap的节点Node"></a>HashMap的节点Node</h3><p><img src="/assets/hashmap/node.png" alt="源码3"></p>
+<ol>
+<li>每个Node节点存储着用来定位数据索引位置的hash值，K键，V值以及指向链表下一个节点的Node&lt;K,V&gt; next节点组成。</li>
+<li>Node是HashMap的内部类，实现了Map.Entry接口，本质是一个键值对。</li>
+</ol>
+<h3 id="HashMap插入数据"><a href="#HashMap插入数据" class="headerlink" title="HashMap插入数据"></a>HashMap插入数据</h3><p>当向HashMap中插入数据时，首先要确定在哈希桶数组中的位置。</p>
+<p>那么如何确定在哈希桶中的位置呢？以添加Key键为字符’e’为例<br><img src="/assets/hashmap/hash.png" alt="源码4"><br>由hash方法源码可以看出，如果值是null，下标始终是0</p>
+<p><img src="/assets/hashmap/hash-e.png" alt="hash计算"></p>
+<ol>
+<li>HashMap首先调用Key对象hashCode()方法，获取键的hashCode值h(101)</li>
+<li>然后对其进行高位运算：将h右移16位以取得h的高16位，与原h的低16位进行异或运算(结果为101)</li>
+<li>最后将得到的h值与(table.length - 1)进行与运算获得该对象的保留位以计算桶的下标</li>
+</ol>
+<p><img src="/assets/hashmap/hash-bili.png" alt="hash计算2"></p>
+<p>例如存放键Key分别为’a’,’b’,’d’,’r’,’t’,’e’,’a’,’g’,’i’对象</p>
+<p>通过计算知下标:</p>
+<ol>
+<li>‘a’为1(0001)</li>
+<li>‘b’为2(0002)</li>
+<li>‘d’为4(0100)</li>
+<li>‘r’为2(0002)</li>
+<li>‘t’为4(0100)</li>
+<li>‘e’为5(0101)</li>
+<li>‘g’为7(0111)</li>
+<li>‘i’为9(1001)</li>
+</ol>
 
+      
+
+      
+        <div class="page-reward">
+          <a href="javascript:;" class="page-reward-btn tooltip-top">
+            <div class="tooltip tooltip-east">
+            <span class="tooltip-item">
+              赏
+            </span>
+            <span class="tooltip-content">
+              <span class="tooltip-text">
+                <span class="tooltip-inner">
+                  <p class="reward-p"><i class="icon icon-quo-left"></i>谢谢你请我吃糖果<i class="icon icon-quo-right"></i></p>
+                  <div class="reward-box">
+                    
+                    
+                  </div>
+                </span>
+              </span>
+            </span>
+          </div>
+          </a>
         </div>
-        <div class="clearfix"></div>
-    </header>
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+
+      
+        
+<div class="share-btn share-icons tooltip-left">
+  <div class="tooltip tooltip-east">
+    <span class="tooltip-item">
+      <a href="javascript:;" class="share-sns share-outer">
+        <i class="icon icon-share"></i>
+      </a>
+    </span>
+    <span class="tooltip-content">
+      <div class="share-wrap">
+        <div class="share-icons">
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="icon icon-weibo"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="icon icon-weixin"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="icon icon-qq"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="icon icon-douban"></i>
+          </a>
+          <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a>
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="icon icon-facebook"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="icon icon-twitter"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="icon icon-google"></i>
+          </a>
+        </div>
+      </div>
+    </span>
+  </div>
+</div>
+
+<div class="page-modal wx-share js-wx-box">
+    <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//pan.baidu.com/share/qrcode?url=https://crazyde21.github.io/2020/03/20/HashMap%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div class="mask js-mask"></div>
+      
+      <div class="clearfix"></div>
+    </div>
   </div>
 </article>
+
   
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2020/03/19/Java%E5%86%85%E5%AD%98%E5%88%86%E6%9E%90%E8%AF%A6%E8%A7%A3/" class="archive-article-date">
-  	<time datetime="2020-03-19T03:07:13.275Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-03-19</time>
-</a>
+<nav id="article-nav">
+  
+  
+    <a href="/2020/03/19/Java%E5%86%85%E5%AD%98%E5%88%86%E6%9E%90%E8%AF%A6%E8%A7%A3/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">Java的内存分析详解</div>
+      <i class="icon-circle-right"></i>
+    </a>
+  
+</nav>
+
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
         </div>
-    	 
+        
+        
+    </div>
+</aside>
+
+
+
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2020/03/19/Java%E5%86%85%E5%AD%98%E5%88%86%E6%9E%90%E8%AF%A6%E8%A7%A3/">Java的内存分析详解</a>
-    </h1>
+  
   
 
-        <div class="article-info info-on-right">
-          
-          
-
-        </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
-  
-  
-    </div></section>
   
 
-    
+  
+
+  
 
 
           </div>
@@ -244,8 +384,8 @@
 	var yiliaConfig = {
 		mathjax: false,
 		isHome: false,
-		isPost: false,
-		isArchive: true,
+		isPost: true,
+		isArchive: false,
 		isTag: false,
 		isCategory: false,
 		open_in_new: false,
